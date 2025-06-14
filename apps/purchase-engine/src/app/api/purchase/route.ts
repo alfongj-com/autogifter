@@ -1,0 +1,106 @@
+import { NextResponse } from 'next/server';
+import https from 'https';
+import { CROSSMINT_CONFIG } from '@/app/config/crossmint';
+
+const uppercaseObjectValues = (obj: Record<string, any>): Record<string, any> => {
+  return Object.entries(obj).reduce((acc, [key, value]) => {
+    if (typeof value === 'string') {
+      acc[key] = value.toUpperCase();
+    } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+      acc[key] = uppercaseObjectValues(value);
+    } else {
+      acc[key] = value;
+    }
+    return acc;
+  }, {} as Record<string, any>);
+};
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    console.log('Amazon Purchase API - Request body:', JSON.stringify(body, null, 2));
+
+    const { asin, email, shippingAddress } = body;
+
+    if (!asin || !email || !shippingAddress) {
+      return NextResponse.json(
+        { error: 'Missing required parameters: asin, email, and shippingAddress are required' },
+        { status: 400 }
+      );
+    }
+
+    const uppercasedEmail = email.toUpperCase();
+    const uppercasedShippingAddress = uppercaseObjectValues(shippingAddress);
+
+    const API_KEY = process.env.CROSSMINT_API_KEY;
+    const walletAddress = process.env.WALLET_ADDRESS;
+    const chain = process.env.CHAIN;
+    const currency = process.env.CURRENCY;
+    
+    if (!API_KEY || !walletAddress || !chain || !currency) {
+      console.error('Amazon Purchase API - Required environment variables not configured');
+      return NextResponse.json(
+        { error: 'Required environment variables not configured' },
+        { status: 500 }
+      );
+    }
+
+    const agent = new https.Agent({
+      rejectUnauthorized: process.env.NODE_ENV === 'production'
+    });
+
+    const checkoutResponse = await fetch(`${CROSSMINT_CONFIG.baseUrl}/api/2022-06-09/orders`, {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        recipient: {
+          email: uppercasedEmail,
+          physicalAddress: {
+            name: uppercasedShippingAddress.name,
+            line1: uppercasedShippingAddress.address1,
+            line2: uppercasedShippingAddress.address2 || "",
+            city: uppercasedShippingAddress.city,
+            postalCode: uppercasedShippingAddress.postalCode,
+            country: uppercasedShippingAddress.country,
+            state: uppercasedShippingAddress.province
+          }
+        },
+        locale: "en-US",
+        payment: {
+          receiptEmail: uppercasedEmail,
+          method: chain,
+          currency: currency,
+          payerAddress: walletAddress
+        },
+        lineItems: [
+          {
+            productLocator: `amazon:${asin}`
+          }
+        ]
+      }),
+      agent
+    });
+
+    console.log('Crossmint Checkout Order API - Response status:', checkoutResponse.status);
+    const checkoutData = await checkoutResponse.json();
+    console.log('Crossmint Checkout Order API - Response:', JSON.stringify(checkoutData, null, 2));
+
+    if (!checkoutResponse.ok) {
+      return NextResponse.json(
+        { error: checkoutData.message || 'Failed to create checkout session' },
+        { status: checkoutResponse.status }
+      );
+    }
+
+    return NextResponse.json(checkoutData);
+  } catch (error) {
+    console.error('Amazon Purchase API - Error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
