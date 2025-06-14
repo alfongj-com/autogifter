@@ -12,17 +12,16 @@ interface ShippingAddress {
   province: string;
 }
 
-const uppercaseObjectValues = (obj: Record<string, unknown>): Record<string, unknown> => {
-  return Object.entries(obj).reduce((acc, [key, value]) => {
-    if (typeof value === 'string') {
-      acc[key] = value.toUpperCase();
-    } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-      acc[key] = uppercaseObjectValues(value as Record<string, unknown>);
-    } else {
-      acc[key] = value;
-    }
-    return acc;
-  }, {} as Record<string, unknown>);
+const uppercaseShippingAddress = (address: ShippingAddress): ShippingAddress => {
+  return {
+    name: address.name.toUpperCase(),
+    address1: address.address1.toUpperCase(),
+    address2: address.address2?.toUpperCase(),
+    city: address.city.toUpperCase(),
+    postalCode: address.postalCode.toUpperCase(),
+    country: address.country.toUpperCase(),
+    province: address.province.toUpperCase()
+  };
 };
 
 export async function POST(request: Request) {
@@ -44,7 +43,7 @@ export async function POST(request: Request) {
     }
 
     const uppercasedEmail = email.toUpperCase();
-    const uppercasedShippingAddress = uppercaseObjectValues(shippingAddress) as ShippingAddress;
+    const uppercasedShippingAddress = uppercaseShippingAddress(shippingAddress);
 
     const API_KEY = process.env.CROSSMINT_API_KEY;
     const walletAddress = process.env.WALLET_ADDRESS;
