@@ -28,11 +28,16 @@ export default function FriendsDashboard({
     e.preventDefault();
     const dateValue = dateInputRef.current?.value || "";
     if (newFriend.name && dateValue) {
-      onAddFriend({
+      const friendData = {
         name: newFriend.name,
         birthday: dateValue,
-        conversationFile: newFriend.conversationFile || undefined,
-      });
+        conversationFile: newFriend.conversationFile ? {
+          name: newFriend.conversationFile.name,
+          size: newFriend.conversationFile.size,
+          type: newFriend.conversationFile.type,
+        } : undefined,
+      };
+      onAddFriend(friendData);
       setNewFriend({ name: "", birthday: "", conversationFile: null });
       if (dateInputRef.current) {
         dateInputRef.current.value = "";
