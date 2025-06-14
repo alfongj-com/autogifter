@@ -4,6 +4,7 @@ import { useState } from "react";
 import FriendsDashboard from "./components/FriendsDashboard";
 import FriendDetail from "./components/FriendDetail";
 import BalanceSettings from "./components/BalanceSettings";
+import { useWalletBalance } from "../hooks/useWalletBalance";
 
 export type Friend = {
   id: string;
@@ -42,7 +43,11 @@ export default function Home() {
     },
   ]);
 
-  const [balance, setBalance] = useState(250.75);
+  const { balance, loading: balanceLoading, error: balanceError } = useWalletBalance(
+    "0x930F513c4C10ce9B4A5858Bf7472d475CeD96380",
+    "base-sepolia", 
+    "usdxm"
+  );
   const [maxGiftPrice, setMaxGiftPrice] = useState(100);
 
   const addFriend = (friend: Omit<Friend, "id" | "giftHistory">) => {
@@ -98,6 +103,8 @@ export default function Home() {
               maxGiftPrice={maxGiftPrice}
               onMaxGiftPriceChange={setMaxGiftPrice}
               onTopUp={() => alert("Top up functionality coming soon!")}
+              loading={balanceLoading}
+              error={balanceError}
             />
           </div>
         </div>
