@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 
 interface BalanceSettingsProps {
   balance: number;
@@ -17,13 +17,50 @@ export default function BalanceSettings({
   onMaxGiftPriceChange,
   onTopUp,
   loading = false,
-  error = null,
+  error: balanceError = null,
 }: BalanceSettingsProps) {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const formatBalance = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(amount);
+  };
+
+  const handleMaxGiftPriceChange = async (newPrice: number) => {
+    try {
+      setIsUpdating(true);
+      setError(null);
+      
+      const response = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ maxGiftPrice: newPrice }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update max gift price');
+      }
+
+      onMaxGiftPriceChange(newPrice);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update max gift price');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleTopUp = async () => {
+    try {
+      setError(null);
+      onTopUp();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Top up failed');
+    }
   };
 
   return (
@@ -41,9 +78,9 @@ export default function BalanceSettings({
             <div className="text-2xl font-bold text-blue-600">
               Loading...
             </div>
-          ) : error ? (
+          ) : balanceError ? (
             <div className="text-2xl font-bold text-red-600">
-              Error: {error}
+              Error: {balanceError}
             </div>
           ) : (
             <div className="text-3xl font-bold text-green-700">
@@ -70,8 +107,9 @@ export default function BalanceSettings({
                 max="500"
                 step="5"
                 value={maxGiftPrice}
-                onChange={(e) => onMaxGiftPriceChange(Number(e.target.value))}
-                className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider"
+                onChange={(e) => handleMaxGiftPriceChange(Number(e.target.value))}
+                disabled={isUpdating}
+                className="flex-1 h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider disabled:opacity-50"
                 style={{
                   background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(maxGiftPrice / 500) * 100}%, #dbeafe ${(maxGiftPrice / 500) * 100}%, #dbeafe 100%)`
                 }}
@@ -92,11 +130,28 @@ export default function BalanceSettings({
         </div>
 
         <button
-          onClick={onTopUp}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-2xl font-bold text-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+          onClick={handleTopUp}
+          disabled={isUpdating}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-2xl font-bold text-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           💎 Top Up Balance
         </button>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+            <p className="text-red-600 text-sm font-medium">
+              ❌ {error}
+            </p>
+          </div>
+        )}
+
+        {isUpdating && (
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+            <p className="text-blue-600 text-sm font-medium">
+              ⏳ Updating settings...
+            </p>
+          </div>
+        )}
 
         <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-2xl p-6 border border-yellow-200">
           <h3 className="heading-font text-lg font-bold text-yellow-600 mb-3">
