@@ -1,0 +1,6 @@
+
+> recommendation-engine@1.0.0 test /home/ubuntu/repos/autogifter/apps/recommendation-engine
+> python -m pytest tests/ || echo 'No tests found'
+
+/home/ubuntu/.pyenv/versions/3.12.7/bin/python: No module named pytest
+No tests found
