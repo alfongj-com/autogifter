@@ -15,7 +15,6 @@ def root():
 
 @app.post("/api/checkout/search")
 async def search(request: Request):
-    print('hello')
     try:
         body = await request.json()
         print('Search API - Request body:', body)
