@@ -13,7 +13,6 @@ const fontSans = FontSans({
 export const metadata: Metadata = {
   title: "AutoGifter",
   description: "Never forget a gift again!",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
