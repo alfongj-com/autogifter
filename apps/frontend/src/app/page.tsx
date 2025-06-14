@@ -1,103 +1,122 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState, useEffect } from "react"
+import type { Friend } from "@/lib/types"
+import { BalanceSettingsPanel } from "@/components/auto-gifter/balance-settings-panel"
+import { FriendsDashboard } from "@/components/auto-gifter/friends-dashboard"
+import { AddFriendForm } from "@/components/auto-gifter/add-friend-form"
+import { FriendDetailView } from "@/components/auto-gifter/friend-detail-view"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { PartyPopper } from "lucide-react"
+// Removed UserPlus and Button import from here as it's handled in FriendsDashboard
+
+// Mock Data
+const initialFriendsData: Friend[] = [
+  {
+    id: "1",
+    name: "Alice Wonderland",
+    birthday: new Date(new Date().getFullYear(), 2, 15), // March 15
+    conversationHistoryFileName: "alice_chat.txt",
+    giftHistory: [
+      { id: "g1", date: "2024-03-15", description: "Mad Hatter Tea Set", price: 45.99, status: "Sent" },
+      { id: "g2", date: "2023-12-25", description: "Cheshire Cat Plush", price: 22.5, status: "Sent" },
+    ],
+  },
+  {
+    id: "2",
+    name: "Bob The Builder",
+    birthday: new Date(new Date().getFullYear(), 6, 28), // July 28
+    conversationHistoryFileName: "bob_notes.csv",
+    giftHistory: [{ id: "g3", date: "2024-07-28", description: "Deluxe Toolbelt", price: 75.0, status: "Planned" }],
+  },
+  {
+    id: "3",
+    name: "Charlie Brown",
+    birthday: new Date(new Date().getFullYear(), 9, 30), // October 30
+    giftHistory: [
+      { id: "g4", date: "2023-10-30", description: "A Good Grief T-Shirt (Size M)", price: 19.99, status: "Error" },
+    ],
+  },
+]
+
+export default function AutoGifterPage() {
+  const [friends, setFriends] = useState<Friend[]>([])
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null)
+  const [showAddFriendModal, setShowAddFriendModal] = useState(false)
+
+  useEffect(() => {
+    setFriends(initialFriendsData)
+  }, [])
+
+  const handleAddFriend = (newFriend: Friend) => {
+    setFriends((prevFriends) => [...prevFriends, newFriend])
+    setShowAddFriendModal(false)
+    console.log("Added friend:", newFriend)
+  }
+
+  const handleDeleteFriend = (friendId: string) => {
+    if (window.confirm("Are you sure you want to delete this friend? This is a very sad action! 😢")) {
+      setFriends((prevFriends) => prevFriends.filter((f) => f.id !== friendId))
+      console.log("Deleted friend ID:", friendId)
+    }
+  }
+
+  const handleViewDetails = (friend: Friend) => {
+    setSelectedFriend(friend)
+    console.log("Viewing details for:", friend.name)
+  }
+
+  const handleBackToDashboard = () => {
+    setSelectedFriend(null)
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen container mx-auto p-4 md:p-8 space-y-8">
+      <header className="text-center py-6">
+        <h1 className="text-5xl md:text-6xl font-comic text-brand-pink flex items-center justify-center gap-3">
+          <PartyPopper className="h-12 w-12 animate-bounce" />
+          AutoGifter
+          <PartyPopper className="h-12 w-12 animate-bounce" />
+        </h1>
+        <p className="text-slate-600 text-lg mt-2">The fun & easy way to never miss a special occasion! 🥳</p>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+      {selectedFriend ? (
+        <FriendDetailView friend={selectedFriend} onBack={handleBackToDashboard} />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2 space-y-8">
+            {/* "Add New Friend" button is now part of FriendsDashboard component */}
+            <FriendsDashboard
+              friends={friends}
+              onAddFriend={() => setShowAddFriendModal(true)} // Prop to open modal
+              onViewDetails={handleViewDetails}
+              onDeleteFriend={handleDeleteFriend}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          <div className="lg:col-span-1">
+            <BalanceSettingsPanel />
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      )}
+
+      <Dialog open={showAddFriendModal} onOpenChange={setShowAddFriendModal}>
+        <DialogContent className="sm:max-w-[525px] bg-white/90 backdrop-blur-md border-brand-purple">
+          <DialogHeader>
+            <DialogTitle className="font-comic text-3xl text-brand-purple">Add a Super Friend!</DialogTitle>
+            <DialogDescription className="text-slate-600">
+              Fill in the details below to add a new friend to your AutoGifter list.
+            </DialogDescription>
+          </DialogHeader>
+          <AddFriendForm onSave={handleAddFriend} onCancel={() => setShowAddFriendModal(false)} />
+        </DialogContent>
+      </Dialog>
+
+      <footer className="text-center py-8 mt-12 border-t border-brand-blue/30">
+        <p className="text-slate-500 font-comic">
+          Made with lots of <span className="text-brand-pink">❤</span> and a sprinkle of AI magic!
+        </p>
       </footer>
     </div>
-  );
+  )
 }
