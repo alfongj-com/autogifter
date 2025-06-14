@@ -41,7 +41,7 @@ export default function FriendDetail({ friend, onBack }: FriendDetailProps) {
 
           <div className="text-center mb-8">
             <h1 className="heading-font text-3xl sm:text-4xl font-bold text-purple-600 mb-2">
-              🎁 {friend.name}'s Gift History
+              🎁 {friend.name}&apos;s Gift History
             </h1>
             <p className="text-lg text-purple-500 font-medium">
               🎂 Birthday: {formatDate(friend.birthday)}
@@ -67,7 +67,7 @@ export default function FriendDetail({ friend, onBack }: FriendDetailProps) {
                   
                   {friend.giftHistory
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                    .map((gift, index) => (
+                    .map((gift) => (
                       <div key={gift.id} className="relative flex items-start space-x-6 pb-6">
                         <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                           🎁
