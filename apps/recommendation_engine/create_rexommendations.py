@@ -2,18 +2,18 @@ import openai
 import os
 from dotenv import load_dotenv
 import time
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from search_engine import search
 import requests
 import fastapi
 import asyncio
 import json
+from typing import List
 
 load_dotenv()
 API_KEY = os.getenv('OPENAI_API_KEY')
 
 client = openai.OpenAI(api_key=API_KEY)
-
 
 message_history = """
 [6/9/25, 8:14:07 AM] Moe: Just landed in Copenhagen and the LEGO House store is calling my name 😍
@@ -78,6 +78,17 @@ message_history = """
 
 """
 
+class Item(BaseModel):
+    name: str = Field(description="the name of the gift item")
+    description: str = Field(description="a description of the gift item, including extra details about the specific type of item")
+
+class Gift(BaseModel):
+    friend_name: str = Field(description="the name of the person that the gift is for")
+    items: List[Item] = Field(description="A list of 1 to 3 items")
+
+class Gifts(BaseModel):
+    gifts: List[Gift] = Field(description="A list of gifts for each friend")
+
 def get_recommendations(msgs: str):
     n_retries = 10
     prompt = """
@@ -87,12 +98,13 @@ You can include details such as a price range, description, and your reasoning f
 """
     for i in range(n_retries):
         try:
-            response = client.chat.completions.create(
+            response = client.beta.chat.completions.parse(
                 model='gpt-4o-mini',
                 messages = [
                     {'role' : 'system', 'content' : prompt},
                     {'role' : 'user', 'content' : msgs}
-                ]
+                ],
+                response_format = Gifts
             )
             return response.choices[0].message.content
         except openai.APITimeoutError:
@@ -176,5 +188,21 @@ def run_search(recs):
         print("Unexpected response format:", response_json)
     ####print("=======================\n", response.json())
 
-res = run_search('jacket')
-print(res)
+# res = run_search('jacket')
+# print(res)
+
+def get_gift_recommendations(msgs):
+    llm_response = eval(get_recommendations(msgs))
+    ###print(llm_response)
+    out = {}
+    for gift in llm_response["gifts"]:
+        out[gift["friend_name"]] = []
+        for item in gift["items"]:
+            recs = item["name"]
+            search_res = run_search(recs)
+            out[gift["friend_name"]].append(search_res)
+    return out
+
+print('~*' * 20)
+gift_items = get_gift_recommendations(message_history)
+print(gift_items)
