@@ -1,6 +1,6 @@
 import { CrossmintBalanceResponse } from './types';
 
-const CROSSMINT_API_BASE = 'https://staging.crossmint.com/api';
+const CROSSMINT_API_BASE = process.env.NEXT_PUBLIC_CROSSMINT_API_BASE || 'https://staging.crossmint.com/api';
 const API_KEY = process.env.NEXT_PUBLIC_CROSSMINT_API_KEY;
 
 export async function fetchWalletBalance(

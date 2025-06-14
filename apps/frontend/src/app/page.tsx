@@ -44,9 +44,9 @@ export default function Home() {
   ]);
 
   const { balance, loading: balanceLoading, error: balanceError } = useWalletBalance(
-    "0x930F513c4C10ce9B4A5858Bf7472d475CeD96380",
-    "base-sepolia", 
-    "usdxm"
+    process.env.NEXT_PUBLIC_WALLET_ADDRESS || "0x930F513c4C10ce9B4A5858Bf7472d475CeD96380",
+    process.env.NEXT_PUBLIC_CHAIN || "base-sepolia", 
+    process.env.NEXT_PUBLIC_TOKEN || "usdxm"
   );
   const [maxGiftPrice, setMaxGiftPrice] = useState(100);
 
