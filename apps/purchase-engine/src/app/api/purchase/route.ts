@@ -2,17 +2,27 @@ import { NextResponse } from 'next/server';
 import https from 'https';
 import { CROSSMINT_CONFIG } from '@/app/config/crossmint';
 
-const uppercaseObjectValues = (obj: Record<string, any>): Record<string, any> => {
+interface ShippingAddress {
+  name: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  province: string;
+}
+
+const uppercaseObjectValues = (obj: Record<string, unknown>): Record<string, unknown> => {
   return Object.entries(obj).reduce((acc, [key, value]) => {
     if (typeof value === 'string') {
       acc[key] = value.toUpperCase();
     } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-      acc[key] = uppercaseObjectValues(value);
+      acc[key] = uppercaseObjectValues(value as Record<string, unknown>);
     } else {
       acc[key] = value;
     }
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, unknown>);
 };
 
 export async function POST(request: Request) {
@@ -20,7 +30,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     console.log('Amazon Purchase API - Request body:', JSON.stringify(body, null, 2));
 
-    const { asin, email, shippingAddress } = body;
+    const { asin, email, shippingAddress }: {
+      asin: string;
+      email: string;
+      shippingAddress: ShippingAddress;
+    } = body;
 
     if (!asin || !email || !shippingAddress) {
       return NextResponse.json(
@@ -30,7 +44,7 @@ export async function POST(request: Request) {
     }
 
     const uppercasedEmail = email.toUpperCase();
-    const uppercasedShippingAddress = uppercaseObjectValues(shippingAddress);
+    const uppercasedShippingAddress = uppercaseObjectValues(shippingAddress) as ShippingAddress;
 
     const API_KEY = process.env.CROSSMINT_API_KEY;
     const walletAddress = process.env.WALLET_ADDRESS;
