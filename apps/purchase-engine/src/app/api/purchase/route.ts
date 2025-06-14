@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import https from 'https';
 import { CROSSMINT_CONFIG } from '@/app/config/crossmint';
 
 interface ShippingAddress {
@@ -57,10 +56,6 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
-
-    const agent = new https.Agent({
-      rejectUnauthorized: process.env.NODE_ENV === 'production'
-    });
 
     const checkoutResponse = await fetch(`${CROSSMINT_CONFIG.baseUrl}/api/2022-06-09/orders`, {
       method: 'POST',
