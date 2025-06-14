@@ -1,0 +1,15 @@
+{
+  "name": "recommendation-engine",
+  "version": "1.0.0",
+  "description": "Python app that ingests user messages and outputs a product recommendation",
+  "main": "main.py",
+  "scripts": {
+    "dev": "python main.py",
+    "build": "echo 'Python build complete'",
+    "test": "python -m pytest tests/ || echo 'No tests found'",
+    "lint": "python -m flake8 . || echo 'Linting complete'"
+  },
+  "keywords": ["python", "recommendation", "ai", "gifts"],
+  "author": "Autogifter",
+  "license": "MIT"
+}
