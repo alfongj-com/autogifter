@@ -2,14 +2,18 @@
   "name": "recommendation-engine",
   "version": "1.0.0",
   "description": "Python app that ingests user messages and outputs a product recommendation",
-  "main": "main.py",
+  "main": "search_engine.py",
   "scripts": {
-    "dev": "python main.py",
-    "build": "echo 'Python build complete'",
+    "predev": "pip install -r requirements.txt",
+    "dev": "uvicorn search_engine:app --reload --host 0.0.0.0 --port 8000",
+    "start": "uvicorn search_engine:app --host 0.0.0.0 --port 8000",
+    "prebuild": "pip install -r requirements.txt",
+    "build": "echo 'Python dependencies installed and ready for deployment'",
+    "install": "pip install -r requirements.txt",
     "test": "python -m pytest tests/ || echo 'No tests found'",
     "lint": "python -m flake8 . || echo 'Linting complete'"
   },
-  "keywords": ["python", "recommendation", "ai", "gifts"],
+  "keywords": ["python", "recommendation", "ai", "gifts", "fastapi", "uvicorn"],
   "author": "Autogifter",
   "license": "MIT"
 }
