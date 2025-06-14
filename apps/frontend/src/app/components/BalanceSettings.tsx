@@ -7,6 +7,8 @@ interface BalanceSettingsProps {
   maxGiftPrice: number;
   onMaxGiftPriceChange: (price: number) => void;
   onTopUp: () => void;
+  loading?: boolean;
+  error?: string | null;
 }
 
 export default function BalanceSettings({
@@ -14,6 +16,8 @@ export default function BalanceSettings({
   maxGiftPrice,
   onMaxGiftPriceChange,
   onTopUp,
+  loading = false,
+  error = null,
 }: BalanceSettingsProps) {
   const formatBalance = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -33,9 +37,19 @@ export default function BalanceSettings({
           <h3 className="heading-font text-lg font-bold text-green-600 mb-2">
             💳 Current Balance
           </h3>
-          <div className="text-3xl font-bold text-green-700">
-            {formatBalance(balance)}
-          </div>
+          {loading ? (
+            <div className="text-2xl font-bold text-blue-600">
+              Loading...
+            </div>
+          ) : error ? (
+            <div className="text-2xl font-bold text-red-600">
+              Error: {error}
+            </div>
+          ) : (
+            <div className="text-3xl font-bold text-green-700">
+              {formatBalance(balance)}
+            </div>
+          )}
           <p className="text-sm text-green-600 mt-2">
             Available for automatic gift purchases
           </p>
