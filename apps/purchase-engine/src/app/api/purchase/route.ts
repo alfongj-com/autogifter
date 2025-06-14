@@ -94,9 +94,8 @@ export async function POST(request: Request) {
             productLocator: `amazon:${asin}`
           }
         ]
-      }),
-      agent
-    });
+      })
+    } as RequestInit & { agent?: https.Agent });
 
     console.log('Crossmint Checkout Order API - Response status:', checkoutResponse.status);
     const checkoutData = await checkoutResponse.json();
